@@ -18,7 +18,6 @@ class Product(models.Model):
     ratings=models.FloatField(null=True,blank=True)
     slug=models.SlugField(default=None,null=True,blank=True)
 
-    
 
 
 
