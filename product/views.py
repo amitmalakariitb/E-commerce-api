@@ -46,12 +46,13 @@ def api_categories(request):
 
 
 
-@api_view()
+@api_view(['GET'])
 def api_category(request,pk):
-  category=get_object_or_404(Category , category_id =pk)
-  serializer=CategorySerializer(category)
+  category=get_object_or_404(Category , pk =pk)
+  products=Product.objects.filter(category=category)
+  serializer=ProductSerializer(products, many=True)
   return Response(serializer.data)
-                        
+
 @api_view(['POST','GET'])
 def post_review(request, product_id):
    if request.method=='POST':
@@ -85,8 +86,29 @@ def post_review(request, product_id):
 def delete_review(request):
     review_id=request.data.get('review_id')
     review = get_object_or_404(ReviewRating,id=review_id)
+    product = review.product
     review.delete()
+    average_rating = ReviewRating.objects.filter(product=product).aggregate(avg_rating=Avg('rating'))['avg_rating'] or 0
+    product.average_rating = average_rating
+    product.save()
     return Response({"message": "Review deleted successfully"}, status=status.HTTP_204_NO_CONTENT)   
+
+@api_view(['GET'])
+def sort_products(request,category_id,sort_by):
+   category=get_object_or_404(Category, pk=category_id)
+   products = Product.objects.filter(category=category)
+   if sort_by == 'price_asc':
+        products = products.order_by('price')
+   elif sort_by == 'price_desc':
+        products = products.order_by('-price')
+   elif sort_by == 'ratings_asc':
+        products = products.order_by('average_rating')
+   elif sort_by == 'ratings_desc':
+        products = products.order_by('-average_rating')   
+   serializer=ProductSerializer(products,many=True)
+   return Response(serializer.data)
+
+   
 
 
 
