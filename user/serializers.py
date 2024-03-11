@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import User
+from .models import User , Address , primeuser
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -20,4 +20,13 @@ class UserSerializer(serializers.ModelSerializer):
         user.set_password(validated_data['password'])
         user.save()
         return user
-    
+class AddressSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Address
+        fields = ['door_no','street', 'city', 'state', 'pincode', 'user']
+
+
+class PrimeuserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = primeuser
+        fields = ['user','is_prime_user' , 'otp']
