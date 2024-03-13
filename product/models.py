@@ -12,7 +12,7 @@ class Category(models.Model):
 
 class Product(models.Model):
     prod_name=models.CharField(max_length=200)
-    category = models.ForeignKey(Category, on_delete=models.CASCADE,default=None,null=True,blank=True)
+    category = models.ForeignKey(Category, on_delete=models.SET_NULL,default=None,null=True,blank=True)
     brand=models.CharField(max_length=100, blank=True,null=True)
     price=models.FloatField(default=500.0)
     prod_img=models.ImageField(upload_to='img',blank=True,null=True)
@@ -22,11 +22,11 @@ class Product(models.Model):
 
 
 class ReviewRating(models.Model):
-    product=models.ForeignKey(Product,on_delete=models.CASCADE,default=None,null=True,blank=True)
-    user_id=models.ForeignKey(User ,on_delete=models.CASCADE,default=None,null=True,blank=True)
+    product=models.ForeignKey(Product,on_delete=models.SET_NULL,default=None,null=True,blank=True)
+    user_id=models.ForeignKey(User ,on_delete=models.SET_NULL,default=None,null=True,blank=True)
     review=models.CharField(max_length=400,default='Default review text')
     rating=models.FloatField()
-    def __str__(self):
-        return f"Review for {self.product.name} by {self.user.username}"
+    class Meta:
+        unique_together = ('product', 'user_id')
 
 
