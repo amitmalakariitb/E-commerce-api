@@ -18,17 +18,22 @@ def add_to_cart(request):
         except Product.DoesNotExist:
             return Response({"error": "Product does not exist."}, status=status.HTTP_400_BAD_REQUEST)
         try:
+            cart_item = Cartitem.objects.get(product_id=request.data.get('product_id'), user_id=request.data.get('user'))
+            # If the product exists, increase the quantity
+            q = int(cart_item.quantity)
+            k = int(cart_item.price)
+            cart_item.quantity += int(request.data.get('quantity'))
+            cart_item.price += (k/q)*int(request.data.get('quantity'))
+            cart_item.save()
+            return Response({"message": "Quantity updated in the cart.", "data": Cart_Item_Serializer(cart_item).data}, status=status.HTTP_200_OK)
+        except Cartitem.DoesNotExist:
+            pass
+        try:
             prime_user = primeuser.objects.get(user_id=request.data.get('user'))
             name = User.objects.get(id = request.data.get('user'))
             username = name.username
             q = int(request.data.get('quantity'))
             request.data['price'] = (product.price)*(q)*0.8
-            request.data['prod_name'] = (product.prod_name)
-            request.data['brand'] = (product.brand)
-            request.data['prod_img'] = (product.prod_img)
-            request.data['description'] = (product.description)
-            request.data['average_rating'] = (product.average_rating)
-            request.data['category'] = (product.category)
             serializer = Cart_Item_Serializer(data=request.data)
             if serializer.is_valid():
                 serializer.save()
@@ -52,6 +57,7 @@ def view_cart(request):
         modified_serializer_data = []
         for item in serializer.data:
             product_id = item.get('product_id')
+            user_id = request.data.get('user')
             product = Product.objects.get(id=product_id)
             item['product_name'] = product.prod_name
             item['brand_name'] = product.brand
@@ -59,6 +65,11 @@ def view_cart(request):
             item['description'] = product.description
             item['average_rating'] = product.average_rating
             item['category'] = product.category if product.category else None
+            cart_items = Cartitem.objects.filter(user_id=user_id, product_id=product_id)
+            if cart_items.exists():
+                cart_item = cart_items.first()
+                cart_item_id = cart_item.id
+                item['primary key or cart_item_id'] = cart_item_id
             # Add more modifications as needed
             modified_serializer_data.append(item)
         
@@ -76,14 +87,23 @@ def edit_cart(request ,pk):#pk stands for primary key
         return Response(status=status.HTTP_404_NOT_FOUND)
     if request.method == 'PATCH' or request.method == 'PUT':
         q = int(request.data.get('quantity'))
-        product = Product.objects.get(id=request.data.get('product_id'))
-        request.data['price'] = (product.price)*(q)
-        serializer = Cart_Item_Serializer(cart_item, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        
+        if q == 0:
+            cart_item.delete()
+            return Response({"message":"Deleted successfully"})
+        else:
+            productid = int(cart_item.product_id_id)
+            userid = int(cart_item.user_id)
+            Price = int(cart_item.price)
+            Q = int(cart_item.quantity)
+            request.data['price'] = (Price/Q)*(q)
+            request.data['user'] = userid
+            request.data['product_id'] = productid
+            serializer = Cart_Item_Serializer(cart_item, data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            
     elif request.method == 'DELETE': 
         cart_item.delete()
         return Response({"message":"Deleted successfully"},status=status.HTTP_204_NO_CONTENT)
