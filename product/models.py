@@ -18,6 +18,7 @@ class Product(models.Model):
     prod_img=models.ImageField(upload_to='img',blank=True,null=True)
     description=models.TextField(blank=True ,null=True)
     average_rating=models.FloatField(null=True, blank=True, default=0)
+    is_out_of_stock=models.BooleanField(null=True, blank=True,default=False)
 
 
 
