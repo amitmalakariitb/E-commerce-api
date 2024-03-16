@@ -7,6 +7,6 @@ urlpatterns = [
     path('logout/', user_logout, name='logout'),
     path('add_new_address/', add_new_address, name='add_new_address'),
     path('edit_saved_addresses/<str:pk>', edit_saved_addresses, name='edit_saved_addresses'),
-    path('view_saved_addresses/', view_saved_addresses, name='view_saved_addresses'),
+    path('view_saved_addresses/<str:pk>', view_saved_addresses, name='view_saved_addresses'),
     path('primeuser/', prime_user, name='primeuser')
 ]
