@@ -81,9 +81,9 @@ def add_new_address(request):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
        
 @api_view(['GET'])
-def view_saved_addresses(request):  
+def view_saved_addresses(request , pk):  
     if request.method == 'GET': 
-        address = Address.objects.filter(user_id=request.data.get('user'))
+        address = Address.objects.filter(user_id=pk)
         if address:
             serializer = AddressSerializer(address, many=True)
             return Response(serializer.data)

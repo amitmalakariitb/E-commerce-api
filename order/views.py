@@ -50,21 +50,21 @@ def add_to_cart(request):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['GET'])
-def view_cart(request):
+def view_cart(request , pk):
     if request.method == 'GET':
-        cart_items = Cartitem.objects.filter(user_id=request.data.get('user'))
+        cart_items = Cartitem.objects.filter(user_id= pk)
         serializer = Cart_Item_Serializer(cart_items, many=True)
         modified_serializer_data = []
         for item in serializer.data:
             product_id = item.get('product_id')
-            user_id = request.data.get('user')
+            user_id = pk
             product = Product.objects.get(id=product_id)
             item['product_name'] = product.prod_name
             item['brand_name'] = product.brand
             item['product_image'] = product.prod_img.url if product.prod_img else None
             item['description'] = product.description
             item['average_rating'] = product.average_rating
-            item['category'] = product.category if product.category else None
+            item['category'] = product.category.title if product.category else None
             cart_items = Cartitem.objects.filter(user_id=user_id, product_id=product_id)
             if cart_items.exists():
                 cart_item = cart_items.first()
