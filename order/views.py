@@ -69,7 +69,7 @@ def view_cart(request , pk):
             if cart_items.exists():
                 cart_item = cart_items.first()
                 cart_item_id = cart_item.id
-                item['primary key or cart_item_id'] = cart_item_id
+                item['cart_item_id'] = cart_item_id
             # Add more modifications as needed
             modified_serializer_data.append(item)
         
