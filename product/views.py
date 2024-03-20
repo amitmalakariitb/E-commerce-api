@@ -108,10 +108,39 @@ def sort_products(request,category_id,sort_by):
    serializer=ProductSerializer(products,many=True)
    return Response(serializer.data)
 
-   
+@api_view(['PUT'])
+def update_product(request, pk):
+    product = get_object_or_404(Product, pk=pk)
+    serializer = ProductSerializer(instance=product, data=request.data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST) 
 
 
+@api_view(['POST'])
+def create_seller(request):
+    serializer=SellerSerializer(data=request.data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+@api_view(['GET'])
+def seller_products(request, seller_id):
+    seller = get_object_or_404(Seller, pk=seller_id)
+    products = Product.objects.filter(seller=seller)
+    product_serializer = ProductSerializer(products, many=True)
+    return Response( product_serializer.data)
 
-   
+@api_view(['POST'])
+def add_product(request, seller_id):
+    seller = get_object_or_404(Seller, pk=seller_id)
+    serializer = ProductSerializer(data=request.data)
+    if serializer.is_valid():
+        serializer.save(seller=seller)  
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)   
+
+
