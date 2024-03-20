@@ -1,6 +1,8 @@
 from django.db import models
+
+from product.models import *
 from user.models import User , Address
-from product.models import Product , Category
+
 
 # class Cartitem(models.Model):
 #     product_name = models.CharField(max_length = 50)
@@ -24,10 +26,12 @@ class Cartitem(models.Model):
         return str(self.product_id)
 class Order(models.Model):
     user = models.ForeignKey(User,on_delete=models.CASCADE,default = 1,related_name = 'order_item' )
+    seller=models.ForeignKey(Seller,on_delete=models.SET_NULL,null=True,blank=True)
     address = models.ForeignKey(Address,on_delete=models.CASCADE,default = 1,related_name = 'order_item' )
     created_at = models.DateTimeField(auto_now_add=True )
     product_id = models.ForeignKey(Product,on_delete=models.CASCADE,default = 1,related_name = 'order_item')
     quantity = models.IntegerField(default = 1)
     total_amount = models.IntegerField()
+    is_accepted=models.BooleanField(null=True,blank=True,default=True)
 
     
