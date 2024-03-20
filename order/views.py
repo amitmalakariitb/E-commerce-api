@@ -146,7 +146,7 @@ def direct_purchase(request):
         serializer = OrderItemSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return Response({"message": "Order placed successfully" , "data": serializer.data}, status=status.HTTP_201_CREATED)
+            return Response({"message": "Order placed successfully" , "data": serializer.data }, status=status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
