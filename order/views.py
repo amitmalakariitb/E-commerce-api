@@ -3,6 +3,8 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
 from .serializers import Cart_Item_Serializer , OrderItemSerializer
+from product.serializers import *
+from user.serializers import *
 from .models import Cartitem , Order 
 from product.models import Product
 from user.models import primeuser , User , Address
@@ -145,8 +147,9 @@ def direct_purchase(request):
         request.data['total_amount'] = (product.price)*(q)
         serializer = OrderItemSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()
-            return Response({"message": "Order placed successfully" , "data": serializer.data }, status=status.HTTP_201_CREATED)
+            order_item = serializer.save()
+            order_id = order_item.id
+            return Response({"message": "Order placed successfully" , "data": serializer.data,"order_id":order_id }, status=status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -179,7 +182,8 @@ def checkout(request):
                     }
                 serializer = OrderItemSerializer(data = cart_item_dict)
                 if serializer.is_valid():
-                    serializer.save()
+                    order_item = serializer.save()
+                    order_id = order_item.id
                     cart_item_dict_1 = {
                     'product_id':1 ,#cart_item.product_id,
                     'quantity':2,#cart_item.quantity,
@@ -187,6 +191,26 @@ def checkout(request):
                     }
                     order_details.append(cart_item_dict_1)
                     cart_item.delete()
-            return Response({"message": "Order placed successfully" , "details":response , "order_details":order_details},status=status.HTTP_201_CREATED)
+            return Response({"message": "Order placed successfully" , "details":response , "order_details":order_details, "order_id":order_id},status=status.HTTP_201_CREATED)
         else:
             return Response({"message": "Your cart is empty"}, status=status.HTTP_400_BAD_REQUEST)   
+        
+@api_view(['GET'])
+def get_order_details(request, order_id):
+    try:
+        order = Order.objects.get(id=order_id)
+    except Order.DoesNotExist:
+        return Response({"error": "Order does not exist."}, status=status.HTTP_404_NOT_FOUND)
+    order_serializer = OrderItemSerializer(order)
+
+    product_serializer = ProductSerializer(order.product_id) 
+
+    address_serializer = AddressSerializer(order.address) 
+
+    response_data = {
+        "order_details": order_serializer.data,
+        "product_details": product_serializer.data,
+        "address_details": address_serializer.data
+    }
+
+    return Response(response_data)
