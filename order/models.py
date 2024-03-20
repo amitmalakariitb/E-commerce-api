@@ -1,5 +1,5 @@
 from django.db import models
-from user.models import User
+from user.models import User , Address
 from product.models import Product , Category
 
 # class Cartitem(models.Model):
@@ -24,6 +24,7 @@ class Cartitem(models.Model):
         return str(self.product_id)
 class Order(models.Model):
     user = models.ForeignKey(User,on_delete=models.CASCADE,default = 1,related_name = 'order_item' )
+    address = models.ForeignKey(Address,on_delete=models.CASCADE,default = 1,related_name = 'order_item' )
     created_at = models.DateTimeField(auto_now_add=True )
     product_id = models.ForeignKey(Product,on_delete=models.CASCADE,default = 1,related_name = 'order_item')
     quantity = models.IntegerField(default = 1)

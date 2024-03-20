@@ -5,7 +5,7 @@ from rest_framework import status
 from .serializers import Cart_Item_Serializer , OrderItemSerializer
 from .models import Cartitem , Order 
 from product.models import Product
-from user.models import primeuser , User
+from user.models import primeuser , User , Address
 from django.contrib.auth import get_user_model
 User = get_user_model()
 @api_view(['POST'])
@@ -120,11 +120,23 @@ def direct_purchase(request):
             prime_user = primeuser.objects.get(user_id=request.data.get('user'))
             name = User.objects.get(id = request.data.get('user'))
             username = name.username
+            address = Address.objects.get(id = request.data.get("address"))
             request.data['total_amount'] = (product.price)*(q)*(0.8)
             serializer = OrderItemSerializer(data=request.data)
             if serializer.is_valid():
                 serializer.save()
-                return Response({username: "is  a prime user so there is a discount of 20'%' on the final amount " ,"message": "Order placed successfully" , "data": serializer.data}, status=status.HTTP_201_CREATED)
+                Serializer = dict(serializer.data)
+                Serializer.pop('address')
+                modified_serializer = []
+                address = Address.objects.get(id =request.data.get("address"))
+                address_dict = {"door_no":address.door_no,
+                                "street":address.street,
+                                "city":address.city,
+                                "state":address.state,
+                                "pincode":address.pincode}
+                Serializer['address'] = address_dict
+                modified_serializer.append(Serializer)
+                return Response({username: "is  a prime user so there is a discount of 20'%' on the final amount " ,"message": "Order placed successfully" , "data": modified_serializer , }, status=status.HTTP_201_CREATED)
             else:
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
             
@@ -144,11 +156,37 @@ def checkout(request):
         cart_items = Cartitem.objects.filter(user_id=request.data.get('user'))
         total_amount = sum(item.price * item.quantity for item in cart_items)
         if cart_items:
+            address = Address.objects.get(id =request.data.get('address'))
+            address_dict = {"door_no":address.door_no,
+                            "street":address.street,
+                            "city":address.city,
+                            "state":address.state,
+                            "pincode":address.pincode}
+            response = [{
+                "user":request.data.get('user'),
+                "total_amount":total_amount,
+                "address":address_dict
+            }]
+            order_details = []
             for cart_item in cart_items:
-                serializer = OrderItemSerializer(data = cart_item)
+                prod = cart_item.product_id
+                cart_item_dict = {
+                    'user':request.data.get('user'),
+                    'product_id':int(prod.pk),
+                    'quantity':int(cart_item.quantity),
+                    'total_amount':cart_item.price,
+                    'address':request.data.get('address')
+                    }
+                serializer = OrderItemSerializer(data = cart_item_dict)
                 if serializer.is_valid():
                     serializer.save()
-                cart_item.delete()
-            return Response({"message": "Order placed successfully" , "Total_amount":total_amount},status=status.HTTP_201_CREATED)
+                    cart_item_dict_1 = {
+                    'product_id':1 ,#cart_item.product_id,
+                    'quantity':2,#cart_item.quantity,
+                    'price':2#cart_item.price
+                    }
+                    order_details.append(cart_item_dict_1)
+                    cart_item.delete()
+            return Response({"message": "Order placed successfully" , "details":response , "order_details":order_details},status=status.HTTP_201_CREATED)
         else:
             return Response({"message": "Your cart is empty"}, status=status.HTTP_400_BAD_REQUEST)   
