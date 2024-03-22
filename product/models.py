@@ -10,8 +10,11 @@ class Category(models.Model):
     title=models.TextField(blank=True,null=True)
 
 class Seller(models.Model):
-    address = models.CharField(max_length=400)
-    license_no = models.CharField(max_length=100)
+    name=models.TextField(max_length=100,blank=True,null=True)
+    email = models.EmailField(unique=True,blank=True,null=True)
+    mobile_number = models.CharField(max_length=10,blank=True,null=True)
+    address = models.CharField(max_length=400,blank=True,null=True)
+    license_no = models.CharField(max_length=100,blank=True,null=True)
 
 
 class Product(models.Model):
